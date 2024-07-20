@@ -50,6 +50,12 @@ interface IExchange {
     /// @notice Initializes the contract with the provided configuration
     function initialize(InitializeConfig memory config_) external;
 
+    /// @notice Pauses the swap feature
+    function pause() external;
+
+    /// @notice Unpauses the swap feature
+    function unpause() external;
+
     /// @notice Updates the fee ratio to the specified `newFee`
     function setFeeRatio(uint96 newFee) external;
 

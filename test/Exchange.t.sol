@@ -60,6 +60,26 @@ contract ExchangeTest is BaseV1Test {
         _assertWithdrawn(address(_usdc), 50e6);
     }
 
+    function test_swap_FailWhenPaused() public {
+        SwapVars memory vars;
+        vars.account = _user;
+        vars.amountIn = 1e18;
+        vars.price = DEFAULT_PRICE;
+        vars.deadline = 1;
+
+        deal(vars.account, vars.amountIn);
+
+        _calculateAmountAndFeeOut(vars);
+        _assertDeposited(_exchange.tokenOut(), vars.amountOut);
+
+        _exchange.pause();
+
+        vm.expectRevert(abi.encodeWithSelector(PausableUpgradeable.EnforcedPause.selector));
+        vm.startPrank(vars.account);
+        _exchange.swap{value: vars.amountIn}(vars.amountIn, vars.minAmountOut, vars.deadline);
+        vm.stopPrank();
+    }
+
     function test_swap_FailWhenDeadlineExceeded() public {
         SwapVars memory vars;
         vars.account = _user;
@@ -144,6 +164,18 @@ contract ExchangeTest is BaseV1Test {
         (uint256 amountOut, uint256 feeOut) = _assertSwappedWithCalculation(vars);
         assertEq(amountOut, 3000e6, "amount out");
         assertEq(feeOut, 0, "fee out");
+    }
+
+    function test_swap_WhenUnpause() public {
+        SwapVars memory vars;
+        vars.account = _user;
+        vars.amountIn = 1e18;
+        vars.price = DEFAULT_PRICE;
+
+        _exchange.pause();
+        _exchange.unpause();
+
+        _assertSwappedWithCalculation(vars);
     }
 
     function testFuzz_swap(SwapVars memory vars, uint48 blockTime, uint96 feeRatio) public {

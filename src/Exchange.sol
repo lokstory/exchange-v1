@@ -84,6 +84,16 @@ contract Exchange is
     }
 
     /// @inheritdoc IExchange
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    /// @inheritdoc IExchange
+    function unpause() external onlyOwner {
+        _unpause();
+    }
+
+    /// @inheritdoc IExchange
     function setFeeRatio(uint96 newFee) external onlyOwner {
         _setFeeRatio(newFee);
     }
@@ -97,6 +107,7 @@ contract Exchange is
     function swap(uint256 amountIn, uint256 minAmountOut, uint48 deadline)
         external
         payable
+        whenNotPaused
         nonReentrant
         ensureDeadlineNotExceeded(deadline)
         returns (uint256 amountOut, uint256 feeOut)
